@@ -52,23 +52,23 @@ For more information on the US data you may have a look at ([Kammerer et al. 202
 ```{r}
 ## Attributes
 
-att.usa <- read.csv2("usa_attributes.csv", header=TRUE)
+att.usa <- read.csv2("Data/usa_attributes.csv", header=TRUE)
 
 ## Collaboration network
 
-coll.usa <- read.csv2("usa_collaboration.csv", header=TRUE)
+coll.usa <- read.csv2("Data/usa_collaboration.csv", header=TRUE)
 rownames(coll.usa) <- coll.usa$ID
 coll.usa$ID <- NULL
 
 ## Influence network
 
-inf.usa <- read.csv2("usa_influence.csv", header = TRUE, stringsAsFactors=FALSE)
+inf.usa <- read.csv2("Data/usa_influence.csv", header = TRUE, stringsAsFactors=FALSE)
 rownames(inf.usa) <- inf.usa $ID
 inf.usa$ID <- NULL
 
 ## Scientific information network
 
-sci.usa <- read.csv2("scientific-information_USA.csv", header = TRUE, stringsAsFactors=FALSE)
+sci.usa <- read.csv2("Data/scientific-information_USA.csv", header = TRUE, stringsAsFactors=FALSE)
 rownames(sci.usa) <- sci.usa$ID
 sci.usa$ID <- NULL
 ```
@@ -223,7 +223,245 @@ Group_cent
 5. Plot the in and out degree distribution for both networks, arrange in one grid. Hint:https://stackoverflow.com/questions/1249548/side-by-side-plots-with-ggplot2
 6. Calculate network statistics (e.g. degree, betweenness, closeness, eigenvector) that make sense for your the respective networks - justify your selection. What do the stats mean in the respective context?
 7. Which actor group is most central in the collaboration network? Which is perceived as most influential? Who is the most influential actor? Who collaborates most? Who is most the most popular collaboration target?
-5. Plot collaboration network with actor type as color code, arcs and degree stats reflecting node sizes. Add a legend to the figure.
-6. Save your graph.
+8. Plot collaboration network with actor type as color code, arcs and degree stats reflecting node sizes. Add a legend to the figure.
+9. Save your graph.
 
 ## Solutions No. 2
+
+1. Load the Swiss data into R (collaboration network, influence network, beliefs & actor type).
+
+This is a rather easy task, but at the same time, many problems can arise! So always have a look at the datasets your are working with and do not blindly copy any commands. This will usually run into troubles. 
+
+While any programmer will warn you about "line-by-line" coding, I always do that to understand what I am doing and how my data looks like.
+
+```{r}
+## Attributes
+
+beliefs.Ch <- read.csv2("Data/CH_beliefs.csv", header=TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+
+## Collaboration network
+
+coll.ch <- read.csv2("Data/cH_coll.csv", header=TRUE)
+rownames(coll.ch) <- coll.ch$X
+coll.ch$X <- NULL
+
+## Influence network
+
+inf.ch <- read.csv2("Data/cH_influence.csv", header=TRUE)
+rownames(inf.ch) <- inf.ch$X
+inf.ch$X <- NULL
+
+## Actor type
+
+types.ch <- read.csv2("Data/CH_type.csv", header = TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+
+```
+
+2. Create the collaboration and influence networks!
+
+```{r}
+coll.ch.mat <- as.matrix(coll.ch) # transform dataset into matrix format
+coll.ch.net <- graph.adjacency(coll.ch.mat, mode="directed", diag=FALSE) # transform matrix into graph object
+
+inf.ch.mat <- as.matrix(inf.ch) # transform dataset into matrix format
+inf.ch.net <- graph.adjacency(inf.ch.mat, mode="directed", diag=FALSE) # transform matrix into graph object
+```
+
+3. Do basic explorations (like census, diameter, av path length). What do we learn?
+
+I simply run all the analyses from the tutorial and I do this now only for the collaboration network. 
+
+I can see that the collaboration network has 54 nodes, and 465 edges. It has 84 mutual connections, but 279 asymmetric connections, i.e. directed ties. Also, it has 1050 potential ties that are NOT present. Also, the network is composed of one single component. The diameter is 5 (longest connection) and an average path length of 1.94. Think about the diameter: Have you heard about the small world phenomenon? See here: https://en.wikipedia.org/wiki/Small-world_experiment. According this this we are all only six degrees (on average) away from each other. Our network is much more connected, but looking at the diameter (the furthest connection), this network is pretty close.
+
+```{r, eval=TRUE, echo=TRUE}
+
+# number of nodes and edges
+
+vcount(coll.ch.net)
+ecount(coll.ch.net)
+
+# cliques
+
+table(sapply(cliques(coll.ch.net), length))
+
+# dyads
+
+dyad.census(coll.ch.net)
+
+# triads
+
+triad.census(coll.ch.net)
+
+# connectivity and paths
+
+is.connected(coll.ch.net)
+
+# components (not really useful here)
+
+comps <- decompose.graph(coll.ch.net)
+table(sapply(comps, vcount))
+
+# average path length
+
+average.path.length(coll.ch.net)
+
+diameter(coll.ch.net)
+
+```
+4. Assign actor type variable to the networks.
+
+```{r, eval=TRUE, echo=TRUE}
+
+V(coll.ch.net)$type <- types.ch$Type
+V(coll.ch.net)$klar <- types.ch$Klarname_EN
+list.vertex.attributes(coll.ch.net)
+
+V(inf.ch.net)$type <- types.ch$Type
+V(inf.ch.net)$klar <- types.ch$Klarname_EN
+list.vertex.attributes(inf.ch.net)
+```
+5. Plot the in and out degree distribution for both networks, arrange in one grid. Hint:https://stackoverflow.com/questions/1249548/side-by-side-plots-with-ggplot2
+
+First for the collaboration network ...
+
+We see that most actors few to a medium number of incoming ties. Hence, very few actor are very popular or very unpopular collaboration targets.
+Further, we see that most actors have very few or few outgoing ties. Hence, very few actors are very active collaborators.
+
+
+```{r, eval=TRUE, echo=TRUE}
+
+par(mfrow=c(1,2))
+
+hist (degree(coll.ch.net, mode = "in", normalized = TRUE), col="yellow", xlim=c(0,0.4),
+      xlab = "Vertex Indegree", ylab="Frequency", main= "InDegree Distribution Switzerland")
+
+hist (degree(coll.ch.net, mode = "out", normalized = TRUE), col="yellow", xlim=c(0,0.8),
+      xlab = "Vertex Outdegree", ylab="Frequency", main= "OutDegree Distribution Switzerland")
+```
+
+Now for the influence network.
+
+What do we see? 
+
+We see that the figures look very similar. Most actors are not percieved as influential, vice versa, and what makes sense, only few actors are considered as being influential.
+
+```{r, eval=TRUE, echo=TRUE}
+
+par(mfrow=c(1,2))
+
+hist (degree(inf.ch.net, mode = "in", normalized = TRUE), col="blue", xlim=c(0,0.8),
+      xlab = "Vertex Indegree", ylab="Frequency", main= "InDegree Distribution Switzerland")
+
+hist (degree(inf.ch.net, mode = "out", normalized = TRUE), col="blue", xlim=c(0,0.8),
+      xlab = "Vertex Outdegree", ylab="Frequency", main= "OutDegree Distribution Switzerland")
+```
+
+6. Calculate network statistics (e.g. degree, betweenness, closeness, eigenvector) that make sense for your the respective networks - justify your selection. What do the stats mean in the respective context?
+
+Again, we can replicate the code! I run them all for the collaboration network...
+
+I have NaNs in the Closeness Centrality statistic. Why is that?
+
+Which centrality stats make sense for the influence network?
+
+```{r, eval=TRUE, echo=TRUE}
+myCentrality <- function(net) {
+  
+  if (!is.igraph(net)) stop ("Input is not an igraph object")
+  ideg <- degree (net, mode="in", loop=F, normalized = T)
+  odeg <- degree (net, mode="out", loop=F, normalized = T)
+  btw <- betweenness (net, normalized=TRUE)
+  clo <- closeness (net, normalized=TRUE) # consider removing
+  evc <- evcent(net)$vector
+  id <- V(net)
+  
+  ret <-data.frame (cbind(IDegree=ideg, ODegree=odeg,
+                         Betweenness=btw, Closeness=clo,
+                          Eigenvector=evc, ID=id))
+  return(ret)
+  
+}
+
+Results_coll <- myCentrality(coll.ch.net)
+Results_coll
+
+# Round
+Results_coll_r <- data.frame(apply(Results_coll[1:5],2, function(x) round(x, 3)))
+Results_coll_r
+```
+```{r, eval=TRUE, echo=TRUE}
+
+Results_inf <- myCentrality(inf.ch.net)
+Results_inf
+
+# Round
+Results_inf_r <- data.frame(apply(Results_inf[1:5],2, function(x) round(x, 3)))
+Results_inf_r
+```
+7. Which actor group is most central in the collaboration network? Which is perceived as most influential? Who is the most influential actor? Who collaborates most? Who is most the most popular collaboration target?
+
+```{r, eval=TRUE, echo=TRUE}
+library(tidyverse)
+
+Results_coll_r$actor.type <- types.ch$Type
+
+Group_cent_coll <- Results_r %>%
+   mutate(actor.type = recode(actor.type, "1" = "GOV",
+         "2" = "SCI",
+         "3" = "BUS", "4" = "CIV", "5"="NA")) %>%
+  group_by(actor.type) %>%
+  summarise(mean_OD = mean(ODegree),  mean_ID = mean(IDegree), mean_Betw = mean(Betweenness), mean_clo=mean(Closeness), mean_Eig=mean(Eigenvector))
+Group_cent_coll
+```
+
+```{r, eval=TRUE, echo=TRUE}
+library(tidyverse)
+
+Results_inf_r$actor.type <- types.ch$Type
+
+Group_cent_inf <- Results_r %>%
+   mutate(actor.type = recode(actor.type, "1" = "GOV",
+         "2" = "SCI",
+         "3" = "BUS", "4" = "CIV", "5"="NA")) %>%
+  group_by(actor.type) %>%
+  summarise(mean_OD = mean(ODegree),  mean_ID = mean(IDegree), mean_Betw = mean(Betweenness), mean_clo=mean(Closeness), mean_Eig=mean(Eigenvector))
+Group_cent_inf
+```
+
+```{r, eval=TRUE, echo=TRUE}
+detach(package:igraph) # igraph will cause confusion with other packages, hence we need to detach it.
+library(sna) # another network package; 
+library(GGally)
+library(network) # another network package; 
+library(ggplot2) # for plotting
+library(RColorBrewer)
+library(intergraph) # another network package; 
+library(scales) 
+library(tidyverse) # data management
+
+net <- network(coll.ch.mat, directed = TRUE) # this is a different way to create a graph object (using the network package);
+
+# To add attributes here:
+
+net%v%"actorType" <- types.ch$Type
+
+unique(types.ch$Type)
+
+# Adjust your color palette (tip: https://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3)!
+# Unique actor types: "Business" "Civil society" "Government"    "Science"       "Party"     
+
+# Exmple on how to create a color palette for the actor type variable
+
+palette = c("Government" = "#f03b20", "Science" = "#31a354", 
+             "Business" ="#feb24c", "Civil society" = "#c51b8a", "Party" = "#2b8cbe")
+
+# Adjust this code to your taste! If you don't know what to do, go and ask Dr. Google!
+
+ggnet2(net, alpha = 0.75, label = FALSE, label.size = 3, mode = "kamadakawai", node.size = 6, size = "indegree", color = "actorType", 
+       arrow.size = 8, arrow.gap = 0.025,
+       shape.legend = "Actor Type",
+       color.legend = "actorType", edge.color = "grey", # maybe you have to adjust the name of the actorType variable here
+       palette = palette, 
+       legend.size = 10, size.min = 1, size.cut = 5, size.legend = "8", legend.position = "bottom")
+ggsave("Plots/my_CH_network.png", width = 29, height = 18,  device = NULL, dpi = 300)
+```
