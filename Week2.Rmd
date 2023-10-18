@@ -69,23 +69,23 @@ For more information on the data you may have a look at ([Kammerer et al. 2021]h
 ```{r}
 ## Attributes
 
-att.usa <- read.csv2("usa_attributes.csv", header=TRUE)
+att.usa <- read.csv2("Data/usa_attributes.csv", header=TRUE)
 
 ## Collaboration network
 
-coll.usa <- read.csv2("usa_collaboration.csv", header=TRUE)
+coll.usa <- read.csv2("Data/usa_collaboration.csv", header=TRUE)
 rownames(coll.usa) <- coll.usa$ID
 coll.usa$ID <- NULL
 
 ## Influence network
 
-inf.usa <- read.csv2("usa_influence.csv", header = TRUE, stringsAsFactors=FALSE)
+inf.usa <- read.csv2("Data/usa_influence.csv", header = TRUE, stringsAsFactors=FALSE)
 rownames(inf.usa) <- inf.usa $ID
 inf.usa$ID <- NULL
 
 ## Scientific information network
 
-sci.usa <- read.csv2("scientific-information_USA.csv", header = TRUE, stringsAsFactors=FALSE)
+sci.usa <- read.csv2("Data/scientific-information_USA.csv", header = TRUE, stringsAsFactors=FALSE)
 rownames(sci.usa) <- sci.usa$ID
 sci.usa$ID <- NULL
 ```
@@ -246,7 +246,7 @@ ggnet2(net, alpha = 0.75, label = TRUE, label.size = 3, mode = "kamadakawai",  n
        color.legend = "actorType", edge.color = "grey", # maybe you have to adjust the name of the actorType variable here
        palette = palette, 
        legend.size = 10, legend.position = "bottom")
-ggsave("my_xxx_network.png", width = 29, height = 18,  device = NULL, dpi = 300) # now save your graph to your working directory
+ggsave("Plots/my_xxx_network.png", width = 29, height = 18,  device = NULL, dpi = 300) # now save your graph to your working directory
 ```
 
 ## Solutions No. 1
@@ -264,7 +264,7 @@ plot(inf.net)
 
 sci.mat <- as.matrix(sci.usa)
 sci.net <- graph.adjacency(sci.mat, mode="directed", diag=FALSE)
-plot(sci.net)
+# plot(sci.net) --> plotting takes forever
 
 ```
 
