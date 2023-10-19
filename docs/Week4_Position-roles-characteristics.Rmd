@@ -1,0 +1,243 @@
+---
+title: "Script No. 3"
+author: "Marlene Kammerer"
+date: "18 Oktober 2023"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	warning = FALSE,
+	include = TRUE
+)
+
+```
+
+# Network positions, roles, and characteristics {.tabset}
+
+## Tutorial
+
+### Content
+
+Well known already!!
+
+  - Load packages 
+  - Load the network data
+  - Create network objects
+  - Add actor attributes
+  - Plot networks using centrality and actor type (--> we use a new package)
+  
+NEW
+  - Assortativity (Looking for homophily)
+  - Finding Bridges
+  - A package to identify structural holes
+
+### Install & load packages
+
+Again, we work with the`igraph` package. But also with several other packages ... if you don't have them yet installed, do so!
+
+
+```{r}
+
+# install.packages("migraph") # to install the package 
+library(igraph) # to load the package
+```
+
+### Load the network data
+
+We will work again with the Swiss dataset. Since this is all well-known already. We do this VERY quickly now. Attention! We work with one new dataset, the two-level dataset.
+
+Hence, we have several datasets:
+
+  - A dataset that contains information in the organization name and it's type (covariate)
+  - A dataset that contains information on the beliefs, instrument preferences, and secondary aspects that an actor holds (also covariates)
+  - A dataset that contains information on whether an actors is involved as well at the level of international climate politics
+  
+Have a look at these datasets and try to understand what all these variables mean!
+
+```{r}
+
+## Attributes
+
+beliefs.Ch <- read.csv2("Data/CH_beliefs.csv", header=TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+twolevel.ch <- read.csv2("Data/CH_2level.csv", header=TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+
+## Collaboration network
+
+coll.ch <- read.csv2("Data/cH_coll.csv", header=TRUE)
+rownames(coll.ch) <- coll.ch$X
+coll.ch$X <- NULL
+
+## Influence network
+
+inf.ch <- read.csv2("Data/cH_influence.csv", header=TRUE)
+rownames(inf.ch) <- inf.ch$X
+inf.ch$X <- NULL
+
+## Actor type
+
+types.ch <- read.csv2("Data/CH_type.csv", header = TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+
+```
+
+### Create network objects
+
+As usual we have to create network objects! This time, we only work with the collaboration network. We directly add the type variable and the organization name to the network.
+
+
+```{r}
+
+coll.ch.mat <- as.matrix(coll.ch) # transform dataset into matrix format
+coll.ch.net <- graph.adjacency(coll.ch.mat, mode="directed", diag=FALSE) # transform matrix into graph object
+V(coll.ch.net)$type <- types.ch$Type
+V(coll.ch.net)$klar <- types.ch$Klarname_EN
+list.vertex.attributes(coll.ch.net)
+
+```
+### Plot network
+
+We plot the collaboration network. This time using a new package. To do so, we need to transform the the igraph object into a tidygraph object.
+
+Here is a nice tutorial on tidy graph: https://tidygraph.data-imaginist.com/reference/group_graph.html
+
+Just by looking at the network, I can already understand a lot about the position of different actors in a network.
+
+```{r}
+library(tidygraph)
+library(ggraph)
+
+coll.ch.tidy <- as_tbl_graph(coll.ch.net)
+
+set.seed(123)
+
+coll.ch.tidy %>%
+  activate(nodes) %>%
+  mutate(centrality = centrality_authority()) %>% # to display node size based on degree centrality
+  ggraph(layout = "graphopt") + 
+  geom_edge_link(width = 1, colour = "lightgray") +
+  geom_node_point(aes(size = centrality, colour = type)) +
+  geom_node_text(aes(label = klar), repel = TRUE)+
+  # scale_color_gradient(low = "yellow", high = "red")+
+  theme_graph()
+ggsave("Plots/Climate_pol_net.png", dpi=300)
+```
+
+### What do key actors think about climate policy? 
+
+Previously, we have learnt to investigate basic network structures, to identify the most central, i.e., important or influential actors and we have added some network characteristics to the network.
+
+We have seen, that this allows us to understand, which group of actors, e.g. governmental actors, is more or less central in a network.
+
+We can do the same thing for other characteristics as well! 
+
+Let's try to see what key actors in Switzerland think about _Carbon Pricing_! 
+
+The result is not so clear -- > core actors seem to deviate! 
+
+```{r}
+library(tidyverse)
+
+# First calculate the centralization statistics as ususal ...
+
+myCentrality <- function(net) {
+  
+  if (!is.igraph(net)) stop ("Input is not an igraph object")
+  ideg <- degree (net, mode="in", loop=F, normalized = T)
+  odeg <- degree (net, mode="out", loop=F, normalized = T)
+  btw <- betweenness (net, normalized=TRUE)
+  clo <- closeness (net, normalized=TRUE) # consider removing
+  evc <- evcent(net)$vector
+  id <- V(net)
+  
+  ret <-data.frame (cbind(IDegree=ideg, ODegree=odeg,
+                         Betweenness=btw, Closeness=clo,
+                          Eigenvector=evc, ID=id))
+  return(ret)
+  
+}
+
+Results_coll <- myCentrality(coll.ch.net)
+Results_coll
+
+# Round
+Results_coll_r <- data.frame(apply(Results_coll[1:5],2, function(x) round(x, 3)))
+Results_coll_r
+
+# Here we map the another variable, i.e. Carbon Pricing
+
+Results_coll_r$carbonPricing <- beliefs.Ch$Carbon.Pricing
+
+Group_cent_coll <- Results_coll_r %>%
+   mutate(carbonPricing = recode(carbonPricing, "1" = "very low support",
+         "2" = "low support",
+         "3" = "neutral", "4" = "high support", "5"="very high support", "NA" = "none")) %>%
+  group_by(carbonPricing) %>%
+  summarise(mean_OD = mean(ODegree),  mean_ID = mean(IDegree), mean_Betw = mean(Betweenness), mean_clo=mean(Closeness), mean_Eig=mean(Eigenvector))
+Group_cent_coll
+
+
+```
+
+### Are similar thinking actors connected? - Assortativity
+
+Further, it would be interesting to understand whether actors that think alike (homophily), do also share ties. For this purpose, we can use the `assortativity()` function. Find the documentation here: https://igraph.org/r/doc/assortativity.html
+
+Let's have a look at some belief variables ...
+
+Do actors that share preferences about Regulatory Measures also collaborate more? 
+
+According to the assortativity coefficient: yes
+
+Note: The `assortativity()` function does not accept NAs. This means we need to get rid of them. For the purpose of this tutorial, we will set them to zero. It's, however, debatable, if this is the right approach.
+
+```{r}
+beliefs.Ch[is.na(beliefs.Ch)] <- 0
+
+V(coll.ch.net)$Regulatory.Measures <- beliefs.Ch$Regulatory.Measures
+
+Regulations <- as.numeric(factor(V(coll.ch.net)$Regulatory.Measures))
+
+assortativity(coll.ch.net, Regulations)
+```
+What about subsidies? Yes!
+
+```{r}
+
+V(coll.ch.net)$Subsidies <- beliefs.Ch$Subsidies
+
+Subsidies <- as.numeric(factor(V(coll.ch.net)$Subsidies))
+
+assortativity(coll.ch.net, Subsidies)
+```
+What about economic competitivness? Yes!
+
+```{r}
+
+V(coll.ch.net)$Comp <- beliefs.Ch$Competitiveness
+
+Comp <- as.numeric(factor(V(coll.ch.net)$Comp))
+
+assortativity(coll.ch.net, Comp)
+```
+
+## Exercises No. 3
+
+1. Load the Swiss __influence data__ and create the network.
+2. Add the actor type variable from the type.ch dataset, the Effectiveness, Efficiency, Justice, Competitiveness variables form the belief.Ch dataset, and the invol_nego variable from the twolevel.ch dataset.
+  2a. What actor types are the most influential ones?
+  2b. Do the most influential actors share the same core beliefs?
+  2c. Are the most influential actors also invovled in the international climate negotiations?
+3.Calculate the assortativity coefficient for three instrument preferences (Regulatory Measures, Technological Innovation, Behavioural Change)
+4. Bonus Exercise: Explore a new package to detect __structural holes__. Look at this vignette and play around with the package a bit. For this purpose work with the collaboration network! 
+
+https://search.r-project.org/CRAN/refmans/migraph/html/holes.html
+
+
+## Solutions No. 3
+
