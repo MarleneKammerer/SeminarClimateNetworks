@@ -1,0 +1,39 @@
+Abbreviation;targets;scope;tax;ActorType
+FC;medium;domestic;support;Administration
+HQ;no;no;no;Administration
+DETEC;medium;domestic;support;Administration
+FOEN;medium;domestic;support;Administration
+NC;no;no;no;Legislative Branch
+SC;no;no;no;Legislative Branch
+ESPEC-N;high;domestic;support;Legislative Branch
+ESPEC-S;no;no;no;Legislative Branch
+BDP;soft;flex;oppose;Parties
+CSP;high;domestic;support;Parties
+CVP;high;flex;support;Parties
+EDU;soft;flex;support;Parties
+EVP;high;flex;oppose;Parties
+FDP;medium;domestic;oppose;Parties
+GLP;high;domestic;support;Parties
+GP;high;domestic;support;Parties
+SP;high;domestic;support;Parties
+SVP;soft;flex;oppose;Parties
+IC-CI;high;domestic;support;Citizen Group
+ECON;soft;flex;oppose;Private Sector
+EnAW;medium;domestic;oppose;Private Sector
+TRAV;high;domestic;support;Citizen Group
+ACS;medium;flex;oppose;Citizen Group
+ASTAG;medium;flex;oppose;Private Sector
+USIC;high;domestic;support;Private Sector
+SGB;high;domestic;support;Private Sector
+EV;soft;flex;oppose;Private Sector
+FRS;medium;flex;oppose;Private Sector
+OcCC;high;domestic;support;Science
+WWF;high;domestic;support;Citizen Group
+BAU;medium;flex;oppose;Private Sector
+SEV;high;domestic;support;Private Sector
+GREEN;high;domestic;support;Private Sector
+SGV;medium;flex;oppose;Private Sector
+VCS;high;domestic;support;Citizen Group
+PUSH;medium;domestic;support;Citizen Group
+CLIA;high;domestic;support;Citizen Group
+COMP;no;no;no;Private Sector

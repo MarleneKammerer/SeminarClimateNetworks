@@ -671,15 +671,20 @@ assortativity(coll.ch.net, Comp)</code></pre>
 <ol style="list-style-type: decimal">
 <li>Load the Swiss <strong>influence data</strong> and create the
 network.</li>
+<li>Calculate centralities (only such that make sense …)</li>
 <li>Add the actor type variable from the type.ch dataset, the
 Effectiveness, Efficiency, Justice, Competitiveness variables form the
 belief.Ch dataset, and the invol_nego variable from the twolevel.ch
-dataset. 2a. What actor types are the most influential ones? 2b. Do the
-most influential actors share the same core beliefs? 2c. Are the most
-influential actors also invovled in the international climate
-negotiations? 3.Calculate the assortativity coefficient for three
-instrument preferences (Regulatory Measures, Technological Innovation,
-Behavioural Change)</li>
+dataset.</li>
+</ol>
+<p>3a. What actor types are the most influential ones?</p>
+<p>3b. Do the most influential actors share the same core beliefs?</p>
+<p>3c. Are the most influential actors also involved in the
+international climate negotiations?</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Calculate the assortativity coefficient for three instrument
+preferences (Regulatory Measures, Technological Innovation, Behavioural
+Change)</li>
 <li>Bonus Exercise: Explore a new package to detect <strong>structural
 holes</strong>. Look at this vignette and play around with the package a
 bit. For this purpose work with the collaboration network!</li>
@@ -688,6 +693,256 @@ bit. For this purpose work with the collaboration network!</li>
 </div>
 <div id="solutions-no.-3" class="section level2">
 <h2>Solutions No. 3</h2>
+<ol style="list-style-type: decimal">
+<li>Load the Swiss <strong>influence data</strong> and create the
+network.</li>
+</ol>
+<p>I load all needed datasets in one go.</p>
+<pre class="r"><code>## Attributes
+
+beliefs.Ch &lt;- read.csv2(&quot;Data/CH_beliefs.csv&quot;, header=TRUE, fileEncoding = &quot;latin1&quot;, stringsAsFactors = FALSE)
+twolevel.ch &lt;- read.csv2(&quot;Data/CH_2level.csv&quot;, header=TRUE, fileEncoding = &quot;latin1&quot;, stringsAsFactors = FALSE)
+
+## Influence network
+
+inf.ch &lt;- read.csv2(&quot;Data/cH_influence.csv&quot;, header=TRUE)
+rownames(inf.ch) &lt;- inf.ch$X
+inf.ch$X &lt;- NULL
+
+## Actor type
+
+types.ch &lt;- read.csv2(&quot;Data/CH_type.csv&quot;, header = TRUE, fileEncoding = &quot;latin1&quot;, stringsAsFactors = FALSE)</code></pre>
+<p>Create the network …</p>
+<pre class="r"><code>inf.ch.mat &lt;- as.matrix(inf.ch) # transform dataset into matrix format
+inf.ch.net &lt;- graph.adjacency(inf.ch.mat, mode=&quot;directed&quot;, diag=FALSE) # transform matrix into graph object
+V(inf.ch.net)$type &lt;- types.ch$Type
+V(inf.ch.net)$klar &lt;- types.ch$Klarname_EN
+list.vertex.attributes(inf.ch.net)</code></pre>
+<pre><code>## [1] &quot;name&quot; &quot;type&quot; &quot;klar&quot;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Calculate centralities (only such that make sense …)</li>
+</ol>
+<p>I replicate the code from above and select InDegree (how often actor
+is percieved as reputational), and InDegree Eigenvector Centrality (how
+often the actors is considered as influential by other influential
+actors)</p>
+<pre class="r"><code>library(tidyverse)
+
+# First calculate the centralization statistics as ususal, but adjust the function. I don&#39;t include Odeg, btw, and clo. Also, I adjusted the eigenvector function to a version that allows to calculate the statistic for directed networks
+
+myCentrality &lt;- function(net) {
+  
+  if (!is.igraph(net)) stop (&quot;Input is not an igraph object&quot;)
+  ideg &lt;- degree (net, mode=&quot;in&quot;, loop=F, normalized = T)
+  # odeg &lt;- degree (net, mode=&quot;out&quot;, loop=F, normalized = T)
+  # btw &lt;- betweenness (net, normalized=TRUE)
+  # clo &lt;- closeness (net, normalized=TRUE) # consider removing
+  evc &lt;- eigen_centrality(net, directed = TRUE)$vector
+  id &lt;- V(net)
+  
+  ret &lt;-data.frame (cbind(IDegree=ideg, 
+                          Eigenvector=evc, ID=id)) # !! you have to adjust this as well
+  return(ret)
+  
+}
+
+Results_inf &lt;- myCentrality(inf.ch.net)
+Results_inf</code></pre>
+<pre><code>##         IDegree Eigenvector ID
+## CH1  0.05660377  0.13897708  1
+## CH2  0.18867925  0.31349771  2
+## CH3  0.03773585  0.11705792  3
+## CH4  0.05660377  0.14752045  4
+## CH5  0.13207547  0.21606798  5
+## CH6  0.22641509  0.53113083  6
+## CH7  0.05660377  0.08612179  7
+## CH8  0.50943396  1.00000000  8
+## CH9  0.39622642  0.65692339  9
+## CH10 0.15094340  0.29625490 10
+## CH11 0.18867925  0.34702540 11
+## CH12 0.35849057  0.76043653 12
+## CH13 0.24528302  0.44496778 13
+## CH14 0.33962264  0.65763706 14
+## CH15 0.20754717  0.35069612 15
+## CH16 0.15094340  0.35599181 16
+## CH17 0.47169811  0.85397687 17
+## CH18 0.20754717  0.40630976 18
+## CH19 0.09433962  0.16372200 19
+## CH20 0.16981132  0.33076420 20
+## CH21 0.32075472  0.68810646 21
+## CH22 0.03773585  0.09797961 22
+## CH23 0.15094340  0.29461929 23
+## CH24 0.32075472  0.59322002 24
+## CH25 0.11320755  0.16415601 25
+## CH26 0.28301887  0.54842167 26
+## CH27 0.11320755  0.23935034 27
+## CH28 0.05660377  0.13205362 28
+## CH29 0.05660377  0.06273128 29
+## CH30 0.22641509  0.38647406 30
+## CH31 0.20754717  0.36181027 31
+## CH32 0.09433962  0.19622422 32
+## CH33 0.01886792  0.03407710 33
+## CH34 0.11320755  0.20876575 34
+## CH35 0.13207547  0.32998819 35
+## CH36 0.16981132  0.30151136 36
+## CH37 0.39622642  0.75506470 37
+## CH38 0.26415094  0.52676359 38
+## CH39 0.33962264  0.65353955 39
+## CH40 0.32075472  0.73064770 40
+## CH41 0.33962264  0.73817306 41
+## CH42 0.16981132  0.40556404 42
+## CH43 0.18867925  0.51642309 43
+## CH44 0.15094340  0.38145808 44
+## CH45 0.09433962  0.32943656 45
+## CH46 0.11320755  0.30290601 46
+## CH47 0.18867925  0.46447557 47
+## CH48 0.15094340  0.30992688 48
+## CH49 0.09433962  0.17493138 49
+## CH50 0.09433962  0.16744047 50
+## CH51 0.09433962  0.26227587 51
+## CH52 0.09433962  0.23745012 52
+## CH53 0.05660377  0.12304320 53
+## CH54 0.07547170  0.16467500 54</code></pre>
+<pre class="r"><code># Round
+Results_inf_r &lt;- data.frame(apply(Results_inf[1:3],2, function(x) round(x, 3))) # you have to adjust this line as well
+Results_inf_r</code></pre>
+<pre><code>##      IDegree Eigenvector ID
+## CH1    0.057       0.139  1
+## CH2    0.189       0.313  2
+## CH3    0.038       0.117  3
+## CH4    0.057       0.148  4
+## CH5    0.132       0.216  5
+## CH6    0.226       0.531  6
+## CH7    0.057       0.086  7
+## CH8    0.509       1.000  8
+## CH9    0.396       0.657  9
+## CH10   0.151       0.296 10
+## CH11   0.189       0.347 11
+## CH12   0.358       0.760 12
+## CH13   0.245       0.445 13
+## CH14   0.340       0.658 14
+## CH15   0.208       0.351 15
+## CH16   0.151       0.356 16
+## CH17   0.472       0.854 17
+## CH18   0.208       0.406 18
+## CH19   0.094       0.164 19
+## CH20   0.170       0.331 20
+## CH21   0.321       0.688 21
+## CH22   0.038       0.098 22
+## CH23   0.151       0.295 23
+## CH24   0.321       0.593 24
+## CH25   0.113       0.164 25
+## CH26   0.283       0.548 26
+## CH27   0.113       0.239 27
+## CH28   0.057       0.132 28
+## CH29   0.057       0.063 29
+## CH30   0.226       0.386 30
+## CH31   0.208       0.362 31
+## CH32   0.094       0.196 32
+## CH33   0.019       0.034 33
+## CH34   0.113       0.209 34
+## CH35   0.132       0.330 35
+## CH36   0.170       0.302 36
+## CH37   0.396       0.755 37
+## CH38   0.264       0.527 38
+## CH39   0.340       0.654 39
+## CH40   0.321       0.731 40
+## CH41   0.340       0.738 41
+## CH42   0.170       0.406 42
+## CH43   0.189       0.516 43
+## CH44   0.151       0.381 44
+## CH45   0.094       0.329 45
+## CH46   0.113       0.303 46
+## CH47   0.189       0.464 47
+## CH48   0.151       0.310 48
+## CH49   0.094       0.175 49
+## CH50   0.094       0.167 50
+## CH51   0.094       0.262 51
+## CH52   0.094       0.237 52
+## CH53   0.057       0.123 53
+## CH54   0.075       0.165 54</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Add the actor type variable from the type.ch dataset, the
+Effectiveness, Efficiency, Justice, Competitiveness variables form the
+belief.Ch dataset, and the invol_nego variable from the twolevel.ch
+dataset.</li>
+</ol>
+<p>3a. What actor types are the most influential ones?</p>
+<p>3b. Do the most influential actors share the same core beliefs?</p>
+<p>3c. Are the most influential actors also involved in the
+international climate negotiations?</p>
+<p>Now, I am mapping all the requested variables to the Results_inf
+dataset. Then, I group for actor types (a), for different core beliefs
+(b), for actors that are also involved in the international climate
+negotiations (c).</p>
+<pre class="r"><code># 
+
+Results_inf_r$ActorType &lt;- types.ch$Type # add actor type
+Results_inf_r$Effectivness &lt;- beliefs.Ch$Effectiveness
+Results_inf_r$Justice &lt;- beliefs.Ch$Justice
+Results_inf_r$Efficiency &lt;- beliefs.Ch$Efficiency
+Results_inf_r$Competitiveness &lt;- beliefs.Ch$Competitiveness
+Results_inf_r$Involve_nego &lt;- twolevel.ch$invol_nego</code></pre>
+<p>To answer questions 3a-3b you need to group the dataset; the
+principle is always the same. Let’s look at one belief variable as an
+example ..</p>
+<pre class="r"><code>Group_cent_inf &lt;- Results_inf_r %&gt;%
+   mutate(Justice = recode(Justice, &quot;1&quot; = &quot;very low support&quot;,
+         &quot;2&quot; = &quot;low support&quot;,
+         &quot;3&quot; = &quot;neutral&quot;, &quot;4&quot; = &quot;high support&quot;, &quot;5&quot;=&quot;very high support&quot;, &quot;NA&quot; = &quot;none&quot;)) %&gt;%
+  group_by(Justice) %&gt;%
+  summarise(mean_ID = mean(IDegree), mean_Eig=mean(Eigenvector))
+Group_cent_inf</code></pre>
+<pre><code>## # A tibble: 5 × 3
+##   Justice           mean_ID mean_Eig
+##   &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;
+## 1 high support        0.185    0.358
+## 2 low support         0.142    0.297
+## 3 neutral             0.231    0.424
+## 4 very high support   0.205    0.396
+## 5 &lt;NA&gt;                0.148    0.354</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Calculate the assortativity coefficient for three instrument
+preferences (Regulatory Measures, Technological Innovation, Behavioural
+Change)</li>
+</ol>
+<p>Again, I am showing the solution based on one example, the idea is
+always the same …</p>
+<pre class="r"><code>beliefs.Ch[is.na(beliefs.Ch)] &lt;- 0
+
+V(inf.ch.net)$Regulatory.Measures &lt;- beliefs.Ch$Regulatory.Measures
+
+Regulations &lt;- as.numeric(factor(V(inf.ch.net)$Regulatory.Measures))
+
+assortativity(inf.ch.net, Regulations)</code></pre>
+<pre><code>## [1] 0.06267675</code></pre>
+<p>It’s positive, but not very strong assortativity …</p>
+<pre class="r"><code>beliefs.Ch[is.na(beliefs.Ch)] &lt;- 0
+
+V(inf.ch.net)$Behavior &lt;- beliefs.Ch$Behavioural.Change
+
+Behavior &lt;- as.numeric(factor(V(inf.ch.net)$Behavior))
+
+assortativity(inf.ch.net, Behavior)</code></pre>
+<pre><code>## [1] -0.06145182</code></pre>
+<p>Interesting –&gt; the most influential actors seem to disagree! Could
+that be an indication for conflict in the climate policy subsystem?</p>
+<ol start="5" style="list-style-type: decimal">
+<li>Bonus Exercise: Explore a new package to detect <strong>structural
+holes</strong>. Look at this vignette and play around with the package a
+bit. For this purpose work with the collaboration network!</li>
+</ol>
+<p><a href="https://search.r-project.org/CRAN/refmans/migraph/html/holes.html" class="uri">https://search.r-project.org/CRAN/refmans/migraph/html/holes.html</a></p>
+<p>The first thing you have to do is to install the package. As you can
+see in the R Documentation, the function accept a range of different
+network file types …</p>
+<p>We take the collaboration matrix…</p>
+<pre class="r"><code># install.packages(&quot;migraph&quot;)
+library(migraph)
+coll.ch.mat &lt;- as.matrix(coll.ch) # transform dataset into matrix format
+coll.ch.net &lt;- graph.adjacency(coll.ch.mat, mode=&quot;directed&quot;, diag=FALSE)</code></pre>
+<pre class="r"><code>Results_coll_r$bridges &lt;- node_bridges(coll.ch.net)
+Results_coll_r$redundance &lt;- node_redundancy(coll.ch.net)</code></pre>
 </div>
 </div>
 

@@ -120,12 +120,12 @@ coll.ch.tidy %>%
   activate(nodes) %>%
   mutate(centrality = centrality_authority()) %>% # to display node size based on degree centrality
   ggraph(layout = "graphopt") + 
-  geom_edge_link(width = 0.3, colour = "gray") +
+  geom_edge_link(width = 1, colour = "lightgray") +
   geom_node_point(aes(size = centrality, colour = type)) +
-  # geom_node_text(aes(label = klar), repel = TRUE)+
+  geom_node_text(aes(label = klar), repel = TRUE)+
   # scale_color_gradient(low = "yellow", high = "red")+
   theme_graph()
-ggsave("Plots/Climate_pol_net.png",  width = 13, height = 10, dpi=300)
+ggsave("Plots/Climate_pol_net.png", dpi=300)
 ```
 
 ### What do key actors think about climate policy? 
@@ -229,15 +229,175 @@ assortativity(coll.ch.net, Comp)
 ## Exercises No. 3
 
 1. Load the Swiss __influence data__ and create the network.
-2. Add the actor type variable from the type.ch dataset, the Effectiveness, Efficiency, Justice, Competitiveness variables form the belief.Ch dataset, and the invol_nego variable from the twolevel.ch dataset.
-  2a. What actor types are the most influential ones?
-  2b. Do the most influential actors share the same core beliefs?
-  2c. Are the most influential actors also invovled in the international climate negotiations?
-3.Calculate the assortativity coefficient for three instrument preferences (Regulatory Measures, Technological Innovation, Behavioural Change)
-4. Bonus Exercise: Explore a new package to detect __structural holes__. Look at this vignette and play around with the package a bit. For this purpose work with the collaboration network! 
+2. Calculate centralities (only such that make sense ...)
+3. Add the actor type variable from the type.ch dataset, the Effectiveness, Efficiency, Justice, Competitiveness variables form the belief.Ch dataset, and the invol_nego variable from the twolevel.ch dataset.
+
+  3a. What actor types are the most influential ones?
+  
+  3b. Do the most influential actors share the same core beliefs?
+  
+  3c. Are the most influential actors also involved in the international climate negotiations?
+  
+4. Calculate the assortativity coefficient for three instrument preferences (Regulatory Measures, Technological Innovation, Behavioural Change)
+5. Bonus Exercise: Explore a new package to detect __structural holes__. Look at this vignette and play around with the package a bit. For this purpose work with the collaboration network! 
 
 https://search.r-project.org/CRAN/refmans/migraph/html/holes.html
 
 
 ## Solutions No. 3
+
+
+1. Load the Swiss __influence data__ and create the network.
+
+I load all needed datasets in one go.
+
+```{r}
+## Attributes
+
+beliefs.Ch <- read.csv2("Data/CH_beliefs.csv", header=TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+twolevel.ch <- read.csv2("Data/CH_2level.csv", header=TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+
+## Influence network
+
+inf.ch <- read.csv2("Data/cH_influence.csv", header=TRUE)
+rownames(inf.ch) <- inf.ch$X
+inf.ch$X <- NULL
+
+## Actor type
+
+types.ch <- read.csv2("Data/CH_type.csv", header = TRUE, fileEncoding = "latin1", stringsAsFactors = FALSE)
+
+```
+
+Create the network ...
+
+```{r}
+
+inf.ch.mat <- as.matrix(inf.ch) # transform dataset into matrix format
+inf.ch.net <- graph.adjacency(inf.ch.mat, mode="directed", diag=FALSE) # transform matrix into graph object
+V(inf.ch.net)$type <- types.ch$Type
+V(inf.ch.net)$klar <- types.ch$Klarname_EN
+list.vertex.attributes(inf.ch.net)
+
+```
+
+2. Calculate centralities (only such that make sense ...)
+
+I replicate the code from above and select InDegree (how often actor is percieved as reputational), and InDegree Eigenvector Centrality (how often the actors is considered as influential by other influential actors)
+
+```{r}
+library(tidyverse)
+
+# First calculate the centralization statistics as ususal, but adjust the function. I don't include Odeg, btw, and clo. Also, I adjusted the eigenvector function to a version that allows to calculate the statistic for directed networks
+
+myCentrality <- function(net) {
+  
+  if (!is.igraph(net)) stop ("Input is not an igraph object")
+  ideg <- degree (net, mode="in", loop=F, normalized = T)
+  # odeg <- degree (net, mode="out", loop=F, normalized = T)
+  # btw <- betweenness (net, normalized=TRUE)
+  # clo <- closeness (net, normalized=TRUE) # consider removing
+  evc <- eigen_centrality(net, directed = TRUE)$vector
+  id <- V(net)
+  
+  ret <-data.frame (cbind(IDegree=ideg, 
+                          Eigenvector=evc, ID=id)) # !! you have to adjust this as well
+  return(ret)
+  
+}
+
+Results_inf <- myCentrality(inf.ch.net)
+Results_inf
+
+# Round
+Results_inf_r <- data.frame(apply(Results_inf[1:3],2, function(x) round(x, 3))) # you have to adjust this line as well
+Results_inf_r
+```
+
+3. Add the actor type variable from the type.ch dataset, the Effectiveness, Efficiency, Justice, Competitiveness variables form the belief.Ch dataset, and the invol_nego variable from the twolevel.ch dataset.
+
+  3a. What actor types are the most influential ones?
+  
+  3b. Do the most influential actors share the same core beliefs?
+  
+  3c. Are the most influential actors also involved in the international climate negotiations?
+
+
+Now, I am mapping all the requested variables to the Results_inf dataset. Then, I group for actor types (a), for different core beliefs (b), for actors that are also involved in the international climate negotiations (c).
+
+```{r}
+# 
+
+Results_inf_r$ActorType <- types.ch$Type # add actor type
+Results_inf_r$Effectivness <- beliefs.Ch$Effectiveness
+Results_inf_r$Justice <- beliefs.Ch$Justice
+Results_inf_r$Efficiency <- beliefs.Ch$Efficiency
+Results_inf_r$Competitiveness <- beliefs.Ch$Competitiveness
+Results_inf_r$Involve_nego <- twolevel.ch$invol_nego
+```
+
+To answer questions 3a-3b you need to group the dataset; the principle is always the same. Let's look at one belief variable as an example ..
+
+
+```{r}
+Group_cent_inf <- Results_inf_r %>%
+   mutate(Justice = recode(Justice, "1" = "very low support",
+         "2" = "low support",
+         "3" = "neutral", "4" = "high support", "5"="very high support", "NA" = "none")) %>%
+  group_by(Justice) %>%
+  summarise(mean_ID = mean(IDegree), mean_Eig=mean(Eigenvector))
+Group_cent_inf
+
+```
+4. Calculate the assortativity coefficient for three instrument preferences (Regulatory Measures, Technological Innovation, Behavioural Change)
+
+Again, I am showing the solution based on one example, the idea is always the same ... 
+
+```{r}
+beliefs.Ch[is.na(beliefs.Ch)] <- 0
+
+V(inf.ch.net)$Regulatory.Measures <- beliefs.Ch$Regulatory.Measures
+
+Regulations <- as.numeric(factor(V(inf.ch.net)$Regulatory.Measures))
+
+assortativity(inf.ch.net, Regulations)
+```
+It's positive, but not very strong assortativity ...
+
+```{r}
+beliefs.Ch[is.na(beliefs.Ch)] <- 0
+
+V(inf.ch.net)$Behavior <- beliefs.Ch$Behavioural.Change
+
+Behavior <- as.numeric(factor(V(inf.ch.net)$Behavior))
+
+assortativity(inf.ch.net, Behavior)
+```
+Interesting --> the most influential actors seem to disagree! Could that be an indication for conflict in the climate policy subsystem?
+
+5. Bonus Exercise: Explore a new package to detect __structural holes__. Look at this vignette and play around with the package a bit. For this purpose work with the collaboration network! 
+
+https://search.r-project.org/CRAN/refmans/migraph/html/holes.html
+
+The first thing you have to do is to install the package. As you can see in the R Documentation, the function accept a range of different network file types ...
+
+We take the collaboration matrix...
+
+```{r}
+
+# install.packages("migraph")
+library(migraph)
+coll.ch.mat <- as.matrix(coll.ch) # transform dataset into matrix format
+coll.ch.net <- graph.adjacency(coll.ch.mat, mode="directed", diag=FALSE)
+
+```
+
+```{r}
+
+Results_coll_r$bridges <- node_bridges(coll.ch.net)
+Results_coll_r$redundance <- node_redundancy(coll.ch.net)
+
+```
+
+
 
