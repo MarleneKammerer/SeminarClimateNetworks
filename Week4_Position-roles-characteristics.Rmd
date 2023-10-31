@@ -120,12 +120,12 @@ coll.ch.tidy %>%
   activate(nodes) %>%
   mutate(centrality = centrality_authority()) %>% # to display node size based on degree centrality
   ggraph(layout = "graphopt") + 
-  geom_edge_link(width = 1, colour = "lightgray") +
+  geom_edge_link(width = 0.3, colour = "gray") +
   geom_node_point(aes(size = centrality, colour = type)) +
-  geom_node_text(aes(label = klar), repel = TRUE)+
+  # geom_node_text(aes(label = klar), repel = TRUE)+
   # scale_color_gradient(low = "yellow", high = "red")+
   theme_graph()
-ggsave("Plots/Climate_pol_net.png", dpi=300)
+ggsave("Plots/Climate_pol_net.png",  width = 13, height = 10, dpi=300)
 ```
 
 ### What do key actors think about climate policy? 

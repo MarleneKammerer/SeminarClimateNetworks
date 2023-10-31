@@ -278,7 +278,9 @@ Nodes: Political actors
 
 ```{r, eval=TRUE, echo=TRUE}
 
-# dyads
+# dyadsdetach
+
+(package:igraph)
 
 dyad.census(inf.usa)
 dyad.census(sci.usa)
