@@ -18,8 +18,6 @@ knitr::opts_chunk$set(
 )
 
 ```
-# TWo-mode (or bipartite networks) {.tabset}
-
 ### Content
 
   - Load packages
@@ -28,8 +26,7 @@ knitr::opts_chunk$set(
   - Plotting a Two-Mode Network using `baseR`
   - Analytic option 1: Proceed as one-mode network
   - Analytic option 2: Proceed as two-mode network
-  - Analytic option 3: Transform one-mode to two-mode (next week)
-  - Anlysing two-modes with statnet (next week)
+  - Analytic option 3: Transform one-mode to two-mode
   
 ### Load igraph
 ```{r}
@@ -56,10 +53,10 @@ The rows are policy actors in the Swiss climate policy network in period between
 
 Recall that, for this to be a two-mode network, ties should exist only between modes, and not within modes. In this case, that means that ties are only possible between policy actors and events, not between actors and actors or between events and events.
 
-Because igraph does not automatically recognize two-mode networks, it is necessary to tell igraph that there are two types of vertices. You can use the function `graph_from_incidence_matrix()__`.
+Because igraph does not automatically recognize two-mode networks, it is necessary to tell igraph that there are two types of vertices. You can use the function `graph_from_incidence_matrix()`.
 
 ```{r}
-## Transorm into igraph object
+## Transform into igraph object
 
 # create matrices
 twomode.mat <- as.matrix(twomode)
@@ -71,7 +68,7 @@ list.edge.attributes(twomode.net)
 
 ```
 
-### Plotting a two-mode matrix using __baseR__
+### Plotting a two-mode matrix using ´baseR´
 
 #### Very basic plots
 
@@ -83,16 +80,16 @@ What follows are just a few of the basic options for visualizing networks in two
 
 plot(twomode.net)
 
-# Adjusting lables 
+# Adjusting labels 
 
 plot(twomode.net, vertex.label.cex = 0.5, vertex.label.color = "black") # size and color of all labels
 
 ```
 #### `V(g)$color` and `V(g)$shape`
 
-Since we're dealing with two different kinds of vertices in a bipartite network, the first thing we should do is make identification of the type of each vertex more visually intuitive.
+Since we're dealing with two different kinds of vertices in a bipartite network, the first thing we should do is make identification of the type of each vertex more visually intuitive
 
-Let's do this using color and shape using the ifelse() function.
+Let's do this using color and shape using the ´ifelse()´ function.
 
 ```{r}
 
@@ -179,7 +176,7 @@ You can also find a lot of information about the package using the `?tnet` funct
 To install tnet, just do as you usually would.
 
 ```{r}
-install.packages("tnet", dependencies=TRUE)
+# install.packages("tnet", dependencies=TRUE)
 library(tnet)  # start tnet
 ```
 
@@ -223,7 +220,7 @@ deg_mt
 deg_tm 
 ```
 
-Okay, so the `tnet` package only defines how to caluclate degree in a two-mode network. Other programs or packages, like UCINET, Pajek, or statnet have already defined two-mode centrality measures, with appropriate normalizations. 
+Okay, so the `tnet` package only defines how to calculate degree in a two-mode network. Other programs or packages, like UCINET, Pajek, or statnet have already defined two-mode centrality measures, with appropriate normalizations. 
 
 In this case, however, Tore has explained that he feels that it is more appropriate to convert the two-mode network into a one-mode network with weighted ties and then analyze that. He has designed some methods for analyzing weighted centrality in one-mode networks (also included in tnet) for that purpose.
 
@@ -231,7 +228,7 @@ You may feel that this was a lot of buildup for very little payoff, and you are 
 
 In the tutorial, that you will replicate as an exercise, you will learn how to analyse twomodes in stanet.
 
-## Transforming 1-modes to 2-modes
+### Analytic Option 3: Transforming 1-modes to 2-modes
 
 Because igraph does not include measures that are designed specifically for use with two-mode data, you may wish to convert the two-mode network into two one-mode networks. So, if you have a network of actors and events, as we do here, you will be able to create a actor-by-actor network and an event-by-event network. These resulting networks may initially be valued to reflect similarity, opportunity, or simple overlaps in behavior. The tnet package is designed to handle weighted networks to produce measures of centrality, .
 
@@ -312,7 +309,7 @@ plot(event_event)
 ### Jaccard Similarity
 
 ```{r}
-install.packages("ade4", dependencies = TRUE)
+# install.packages("ade4", dependencies = TRUE)
 library(ade4) 
 ```
 
