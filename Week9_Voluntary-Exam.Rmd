@@ -1,0 +1,76 @@
+---
+title: "Voluntary exam"
+author: "Marlene Kammerer"
+date: "25 November 2023"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	warning = FALSE,
+	include = TRUE
+)
+
+```
+
+# Introduction {.tabset}
+
+In this exam, you will be able to apply most of the things we have discussed in the past weeks.
+
+The dataset you work with is a DNA-Dataset form Switzerland that covers the media debate on climate change in the year. In the following exam, you will analyse the data, i.e. explore basic characteristics of the network, but also run some more comprehensive analyses...
+
+Note that not all but not all questions are coding tasks! 
+
+__Use the DNA manual, all scripts, the internet, R-Tutor, and ChatGPT for help!!__
+
+We will discuss the solutions on __November 30__!
+
+HAVE FUN!
+
+## Questions
+
+1. What makes a good research question? Formulate your own research question that you could explore with this dataset!
+
+2. Set-up Java and the DNA software
+
+3. Load the DNA-dataset (CH_DNA_2012) into your R-Studio environment; create an actor-actor, actor-concept and load the attribute dataset. Choose a aggregation and normalization method and justify your decision. For help look into the manual
+
+4. Describe the two networks. What are the nodes? What are the ties? How many nodes and ties do both the networks have?
+
+5. Make some basic analyses. What are the most central actors? What are the most central concepts? Use density, degree centralization, average degree, and the degree distribution to describe the structure of both networks. Look at the "Bonus Script" to make sure that you take the correct measures for the actor-concept network. 
+
+6. Use ´dna_barplot()´to look at the distribution of actors and concepts. Which concepts would you exclude? Explain why and exclude them using the ´dna_network()´ function.
+
+7. Challenge 1: Play around with the ´dna_clust´ function to identify clusters in the actor-actor network! You may replicate the code from the Tutorial in Week 8.
+
+8. Challenge 2: Create an actor-actor and actor-concept network that only contains statements that link COVID-19 and climate policy. Describe the network and run  Tip: You can do this using this code:
+
+ ```{r}
+# nw_DE_covid = dna_network (conn_DE, networkType = "twomode",
+#                         statementType = "DNA Statement",
+#                         variable1 = "organization",
+#                         variable2 = "concept",
+#                         qualifier = "agreement",
+#                         qualifierAggregation = "combine", # multiplex combination
+#                         #normalization = "Jaccard",
+#                         #isolates = TRUE,
+#                         duplicates = "document",
+#                         excludeValues = list("concept" = c("tackling covid crisis should be coupled with CC mitigation",
+#                                                            "Covid crisis presents opportunity for CC action",
+#                                                            "Abolition/reduction of climate measures due to covid crisis",
+#                                                            "need for more governmental support due to covid crisis (e.g., EEG)")),
+#                         invertValues = TRUE # only covid categories
+# )
+# 
+ ```
+
+
+## Solutions
+
+
