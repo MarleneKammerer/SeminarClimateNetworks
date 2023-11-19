@@ -1,19 +1,19 @@
 #===================================================================================================
 ### BASIC ANALYSIS  PHASE II
 ### Author: Marlene Kammerer
-### Date: 06.07.2017, revised 06.09.2017
+### Date: 06.07.2017, revised 06.09.2017, updated Nov 19, 2023
 #===================================================================================================
 
 # Set up
 
-detach(package:sna)
+# detach(package:sna)
 library(igraph)
 igraph.options(sparsematrices=FALSE)
 
 # Load data
 
-Net <- read.csv2("final-mat_2013-for-bookchapter.csv", header = TRUE)
-Covs <- read.csv2("covariates_2013-for-bookchapter.csv", header = TRUE)
+Net <- read.csv2("Data/Network_Phase2.csv", header = TRUE)
+Covs <- read.csv2("Data/Covariates_Phase2.csv", header = TRUE)
 rownames(Covs) <- Covs$Abbreviation
 rownames(Net) <- Net$ID
 Net$ID <- NULL
@@ -70,7 +70,7 @@ Results1$ODegree <- round(Results1$ODegree, digits =3)
 
 Results1
 
-write.csv2(Results1, file = "centrality.scores-adjusted.dichotomized.csv")
+write.csv2(Results1, file = "Results/centrality.scores-adjusted.dichotomized.csv")
 
 Results1$Actor.type <- Covs$ActorType
 
@@ -83,7 +83,7 @@ mean_by_actor
 
 mean_by_actor$Actor.type <- NULL
 
-write.csv2(mean_by_actor, file = "centrality.scores-mean-by-actor.csv")
+write.csv2(mean_by_actor, file = "Results/centrality.scores-mean-by-actor.csv")
 
 # Plots
 
@@ -109,7 +109,6 @@ Covs$targets <- as.character(Covs$targets)
 Covs$tax <- as.character(Covs$tax)
 Covs$scope <- as.character(Covs$scope)
 
-
 # now add to network; could also be done with set.vertex.attribute()
 
 net%v%"actorType" <-Covs$ActorType
@@ -127,9 +126,9 @@ ggnet2(net, mode = "fruchtermanreingold",  node.size = 6, node.color = "steelblu
        edge.color = "black")
 
 # I test different layouts and decide for fruchtermanreingold
-ggnet2(net_w, "kamadakawai" )
-ggnet2(net_w, "target")
-ggnet2(net_w, "fruchtermanreingold")
+ggnet2(net, "kamadakawai" )
+ggnet2(net, "target")
+ggnet2(net, "fruchtermanreingold")
 
 # my graphs
 
@@ -147,177 +146,26 @@ ggnet2(net, alpha = 0.75, label = TRUE, label.size = 8, mode = "kamadakawai",  n
 ggsave("new_13.2.jpg", width = 25, height = 18,  device = NULL, dpi = 400)
 
 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 5, mode = "kamadakawai",  node.size = 15, color = "actorType", edge.size = 0.4, 
-#        color.legend = "Actor Type", edge.color = "grey", 
-#        palette = c("Administration" = "grey", "Legislative Branch" = "tomato", 
-#                    "Parties" = "orange", "Citizen Group" ="green", "Private Sector" = "lightblue", "Science" = "yellow", "International" = "pink" ), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        shape = "CO2Levy", shape.legend = "CO2 Levy",
-#        shape.palette = c("support" = 16, "oppose" = 17, "no" = 3),
-#        legend.size = 10, legend.position = "bottom")
-# ggsave("graph_degree_actor_CO2levy_final.png", width = 29, height = 18,  device = NULL, dpi = 300)
-# 
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 3,
-#        mode = "kamadakawai",  node.size = 6, 
-#        color = "targets", edge.size = 0.4, 
-#        color.legend = "Reduction targets", edge.color = "grey", 
-#        palette = c("high" = "green", "medium" = "yellow", "soft" = "tomato", "no" = "grey"), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        legend.position = "bottom")
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 3,
-#        mode = "kamadakawai",  node.size = 6, 
-#        color = "tax", edge.size = 0.4, 
-#        color.legend = "Carbon levy on fuels", edge.color = "grey", 
-#        palette = c("support" = "green", "oppose" = "tomato", "no" = "grey"), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        legend.position = "bottom")
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 3,
-#        mode = "kamadakawai",  node.size = 6, 
-#        color = "scope", edge.size = 0.4, 
-#        color.legend = "Flexibiity of reduction", edge.color = "grey", 
-#        palette = c("domestic" = "green", "flex" = "tomato", "no" = "grey"), 
-#        size = "degree",size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        legend.position = "bottom")
-# 
-# # Now I combine Carbon tax graph with positins on instruments
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 5, mode = "kamadakawai",  node.size = 15, color = "actorType", edge.size = 0.4, 
-#        color.legend = "Actor Type", edge.color = "grey", 
-#        palette = c("Administration" = "grey", "Legislative Branch" = "tomato", 
-#                    "Parties" = "orange", "Citizen Group" ="green", "Private Sector" = "lightblue", "Science" = "yellow", "International" = "pink" ), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        shape = "voluntary measures", shape.legend = "Voluntary measures",
-#        shape.palette = c("support" = 16, "oppose" = 17, "no" = 3),
-#        legend.size = 10, legend.position = "bottom")
-# ggsave("graph_degree_actor_va_final.png", width = 29, height = 18,  device = NULL, dpi = 300)
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 5, mode = "kamadakawai",  node.size = 15, color = "actorType", edge.size = 0.4, 
-#        color.legend = "Actor Type", edge.color = "grey", 
-#        palette = c("Administration" = "grey", "Legislative Branch" = "tomato", 
-#                    "Parties" = "orange", "Citizen Group" ="green", "Private Sector" = "lightblue", "Science" = "yellow", "International" = "pink" ), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        shape = "CO2Levy", shape.legend = "CO2 Levy",
-#        shape.palette = c("support" = 16, "oppose" = 17, "no" = 3),
-#        legend.size = 10, legend.position = "bottom")
-# ggsave("graph_degree_actor_CO2levy_final.png", width = 29, height = 18,  device = NULL, dpi = 300)
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 6, mode = "kamadakawai",  node.size = 20, color = "actorType", edge.size = 0.4, 
-#        color.legend = "Actor Type", edge.color = "grey", 
-#        palette = c("Administration" = "grey", "Legislative Branch" = "tomato", 
-#                    "Parties" = "orange", "Citizen Group" ="green", "Private Sector" = "lightblue", "Science" = "yellow", "International" = "pink" ), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        shape = "permits", shape.legend = "Permits",
-#        shape.palette = c("support" = 16, "oppose" = 17, "no" = 3),
-#        legend.size = 15, legend.position = "bottom")
-# ggsave("graph_degree_actor_permits_final.png", width = 29, height = 18,  device = NULL, dpi = 300)
-# 
-# 
-# ggnet2(net, alpha = 0.75, label = TRUE, label.size = 6, mode = "kamadakawai",  node.size = 20, color = "actorType", edge.size = 0.4, 
-#        color.legend = "Actor Type", edge.color = "grey", 
-#        palette = c("Administration" = "grey", "Legislative Branch" = "tomato", 
-#                    "Parties" = "orange", "Citizen Group" ="green", "Private Sector" = "lightblue", "Science" = "yellow", "International" = "pink" ), 
-#        size = "degree", size.min = 1, size.cut = 5, size.legend = "Degree centrality",
-#        shape = "climatecent", shape.legend = "Climate Cent",
-#        shape.palette = c("support" = 16, "oppose" = 17, "no" = 3),
-#        legend.size = 15, legend.position = "bottom")
-# ggsave("graph_degree_actor_climatecent_final.png", width = 29, height = 18,  device = NULL, dpi = 300)
-
-
-# Average degree
-
-density <- graph.density(graph = Net_binar)
-
-avdegree <- density*((vcount(Net_binar)-1))
-
-# Centralization
-
-centralize(degree(Net_binar), normalized = TRUE) # Need to check this
-
-# Run simple regression
-
-
-## Recoding belief variables
-
-levels(Covs$CO2Levy)[levels(Covs$CO2Levy)=="no"] <- 3
-levels(Covs$CO2Levy)[levels(Covs$CO2Levy)=="oppose"] <- 2
-levels(Covs$CO2Levy)[levels(Covs$CO2Levy)=="support"] <- 1
-
-levels(Covs$Permits)[levels(Covs$Permits)=="no"] <- 3
-levels(Covs$Permits)[levels(Covs$Permits)=="oppose"] <- 2
-levels(Covs$Permits)[levels(Covs$Permits)=="support"] <- 1
-
-levels(Covs$voluntaryMeasures)[levels(Covs$voluntaryMeasures)=="no"] <- 0
-levels(Covs$voluntaryMeasures)[levels(Covs$voluntaryMeasures)=="oppose"] <- -1
-levels(Covs$voluntaryMeasures)[levels(Covs$voluntaryMeasures)=="support"] <- 1
-
-levels(Covs$ClimateCent)[levels(Covs$ClimateCent)=="no"] <- 0
-levels(Covs$ClimateCent)[levels(Covs$ClimateCent)=="oppose"] <- -1
-levels(Covs$ClimateCent)[levels(Covs$ClimateCent)=="support"] <- 1
-
-Covs$Permits = as.numeric(Covs$Permits)
-Covs$voluntaryMeasures = as.numeric(Covs$voluntaryMeasures)
-Covs$ClimateCent = as.numeric(Covs$ClimateCent)
-Covs$CO2Levy = as.numeric(Covs$CO2Levy)
-
 
 data = cbind(Covs, Results1)
 
-# I control for different centrality measures
 
 library(texreg)
 library(car)
 
-levels(data$ActorType)
 
-fit.1a <- lm (CO2Levy ~ IDegree + C(ActorType, contr.treatment(6, base=1)) 
-                               , data = data)
-summary(fit.1a) 
-
-fit.1b <- lm (CO2Levy~ Betweenness + C(ActorType, contr.treatment(6, base=1)) 
-               , data = data)
-summary(fit.1b)  
-
-fit.1c <- lm (CO2Levy ~ Closeness+ C(ActorType, contr.treatment(6, base=1)) 
-               , data = data)
-summary(fit.1c)                    
-                   
-
-screenreg(list(fit.1a, fit.1b, fit.1c))
-
-# The different centrality measures, do not really make a difference
-
-####################################################################
-
-# I control for other instruments
-
-
-fit.2a <- lm (CO2Levy ~ IDegree + C(ActorType, contr.treatment(6, base=1)) + 
-                 
-               Permits + ClimateCent + voluntaryMeasures , data = data)
-summary(fit.2a) 
-vif(fit.2a)
-
-
-screenreg(list(fit.1a, fit.2a))
-
-####################################################################
-
-
-fit.3a <- lm(cent.scores$IDegree ~ 
-               Covs$ClimateCent + Covs$ActorType)
+fit.3a <- lm(data$IDegree ~ 
+               data$targets + data$ActorType)
 summary(fit.3a)
 
 
-fit.3b <- lm(cent.scores$Betweenness ~ 
-               Covs$ClimateCent + Covs$ActorType)
+fit.3b <- lm(data$Betweenness ~ 
+               data$targets + data$ActorType)
 summary(fit.3b)
 
 
-fit.3c <- lm(cent.scores$Closeness ~ 
-               Covs$ClimateCent + Covs$ActorType)
+fit.3c <- lm(data$Closeness ~ 
+               data$targets + data$ActorType)
 summary(fit.3c)
 
 screenreg(list(fit.3a, fit.3b, fit.3c))
@@ -325,18 +173,19 @@ screenreg(list(fit.3a, fit.3b, fit.3c))
 ####################################################################
 
 
-fit.4a <- lm(cent.scores$IDegree ~ 
-               Covs$Permits + Covs$ActorType)
+fit.4a <- lm(data$IDegree ~ 
+               data$tax + data$ActorType)
 summary(fit.4a)
 
 
-fit.4b <- lm(cent.scores$Betweenness ~ 
-               Covs$Permits + Covs$ActorType)
+fit.4b <- lm(data$Betweenness ~ 
+               data$tax + data$ActorType)
 summary(fit.4b)
 
 
-fit.4c <- lm(cent.scores$Closeness ~ 
-               Covs$Permits + Covs$ActorType)
+fit.4c <- lm(data$Closeness ~ 
+               data$tax + data$ActorType)
 summary(fit.4c)
 
 screenreg(list(fit.4a, fit.4b, fit.4c))
+
