@@ -1,0 +1,42 @@
+"";"id";"value";"color";"type";"alias";"notes";"frequency"
+"1";97;"Agency for Development and Cooperation";"#000000";"Government";"DEZA";"";2
+"2";6;"Agro industry";"#000000";"Business";"AGRO";"";10
+"3";313;"Airline industry";"#000000";"Business";"AIR";"";11
+"4";14;"Car importers";"#000000";"Business";"CAR";"";10
+"5";610;"Climate activists";"#000000";"Civil Society";"ACT";"";94
+"6";425;"Consulting";"#000000";"Business";"CONSULT";"";11
+"7";517;"Corporations";"#000000";"Business";"CORP";"";35
+"8";27;"Die Mitte";"#000000";"Political Party";"MITTE";"";35
+"9";37;"Economiesuisse";"#000000";"Business";"ECON";"";12
+"10";116;"Energy industry";"#000000";"Business";"ENRGY";"";14
+"11";371;"Environmental Comission of Parliament";"#000000";"Government";"ESPEC";"";11
+"12";57;"Environmental department";"#000000";"Government";"DETEC";"";5
+"13";49;"Evangelical People's Party";"#000000";"Political Party";"EPP";"";3
+"14";111;"Federal Office of Energy";"#000000";"Government";"SFOE";"";8
+"15";60;"Federal Office of Environment";"#000000";"Government";"FOEN";"";24
+"16";52;"Federal government";"#000000";"Government";"GOV";"";61
+"17";488;"Financial Comission of Parliament";"#000000";"Government";"FC";"";3
+"18";325;"Financial Market Supervisory";"#000000";"Government";"FINMA";"";6
+"19";389;"Financial department";"#000000";"Government";"FDF";"";4
+"20";630;"Financial industry";"#000000";"Business";"FIN";"";82
+"21";50;"Free Democratic Party (Liberals)";"#000000";"Political Party";"FDP";"";74
+"22";585;"Gold Standard";"#000000";"Civil Society";"GOLD";"";12
+"23";70;"Green Party Switzerland";"#000000";"Political Party";"GPS";"";138
+"24";69;"Greenliberal Party";"#000000";"Political Party";"GLP";"";42
+"25";71;"Greenpeace Schweiz";"#000000";"Civil Society";"GREEN";"";12
+"26";307;"Houseowner's association";"#000000";"Business";"HEV";"";3
+"27";657;"Insurances/Pension Funds";"#000000";"Business";"INSUR";"";16
+"28";351;"Judges";"#000000";"Government";"JUDGE";"";1
+"29";61;"MeteoSchweiz";"#000000";"Science";"MeteoSuisse";"";6
+"30";123;"NGOs";"#000000";"Civil Society";"NGO";"";42
+"31";548;"Parliament";"#000000";"Government";"PARL";"";61
+"32";252;"Research institutions";"#000000";"Science";"ACADEMIA";"";207
+"33";95;"Secretariat for Economic Affairs";"#000000";"Government";"SECO";"";1
+"34";94;"Socialdemocratic Party";"#000000";"Political Party";"SPS";"";65
+"35";115;"Swiss People's Party";"#000000";"Political Party";"SPP";"";107
+"36";122;"Swisscleantech";"#000000";"Business";"CLEANTECH";"";7
+"37";444;"Tourism";"#000000";"Business";"TOUR";"";2
+"38";119;"Trade association";"#000000";"Business";"SGV";"";16
+"39";101;"Traffic organization";"#000000";"Business";"TRAF";"";4
+"40";141;"WWF Schwitzerland";"#000000";"Civil Society";"WWFS";"";17
+"41";104;"World Economic Forum";"#000000";"IGO";"WEF";"";4

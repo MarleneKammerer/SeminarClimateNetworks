@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 In this exam, you will be able to apply most of the things we have discussed in the past weeks.
 
-The dataset you work with is a DNA-Dataset form Switzerland that covers the media debate on climate change in the year. In the following exam, you will analyse the data, i.e. explore basic characteristics of the network, but also run some more comprehensive analyses...
+The dataset you work with is a DNA-Dataset form Switzerland that covers the media debate on climate change in the year 2020. In the following exam, you will analyse the data, i.e. explore basic characteristics of the network, but also run some more comprehensive analyses...
 
 Note that not all but not all questions are coding tasks! 
 
@@ -35,7 +35,7 @@ HAVE FUN!
 
 ## Questions
 
-1. What makes a good research question? Formulate your own research question that you could explore with this dataset!
+1. What makes a good research question? Formulate your own research question with that you could explore with this dataset!
 
 2. Set-up Java and the DNA software
 
@@ -73,4 +73,202 @@ HAVE FUN!
 
 ## Solutions
 
+1. What makes a good research question? Formulate your own research question that you could explore with this dataset!
 
+Collect a number of RQ from students
+
+2. Set-up Java and the DNA software
+
+```{r}
+# install.packages("rJava")
+# install.packages("Rcpp")
+# install.packages("rDNA")
+
+library("rJava")
+
+#### initiate java
+.jinit()
+.jcall("java/lang/System", "S", "getProperty", "java.version") 
+.jcall("java/lang/System", "S", "getProperty", "java.home")
+.jcall("java/lang/System", "S", "getProperty", "os.arch") # java, Os and R architecture must match. In my case it is 64; amd 64 and x86_64
+.jcall("java/lang/System", "S", "getProperty", "sun.arch.data.model")
+```
+
+```{r}
+# install.packages("devtools")
+# 
+# ## Install rDNA
+# 
+# install.packages("devtools")
+# devtools::install_url("https://github.com/leifeld/dna/releases/download/v2.0-beta.22/rDNA_2.1.9.tar.gz", INSTALL_opts = "--no-multiarch")
+# install.packages("remotes")
+# remotes::install_github("leifeld/dna/rDNA", INSTALL_opts = "--no-multiarch")
+
+library(rDNA)
+
+library(igraph)
+library(cluster)
+library(GGally)
+library(ggplot2)
+library(RColorBrewer)
+library(intergraph)
+library(ape)
+library(network)
+
+# initating of DNA software
+
+set.seed (12345)
+
+# Load DNA file 
+
+dna_init ("dna-2.0-beta25.jar")
+```
+
+3. Load the DNA-dataset (CH_DNA_2012) into your R-Studio environment; create an actor-actor, actor-concept and load the attribute dataset. Choose a aggregation and normalization method and justify your decision. For help look into the manual
+
+```{r}
+
+# Load Connections
+
+conn <- dna_connection("Data/DNA_CH_2020.dna") # this is a dataset on Switzerland
+
+# Load network & save two-mode as .csv file
+
+two_mode = dna_network (conn, networkType = "twomode",
+                  statementType = "DNA Statement",
+                  variable1 = "organization",
+                  variable2 = "concept",
+                  qualifier = "agreement",
+                  qualifierAggregation = "combine", # co-agreement; or co-disagreement
+                  isolates = FALSE,
+                  duplicates = "document",
+)
+
+
+one_mode = dna_network (conn, networkType = "onemode",
+                          statementType = "DNA Statement",
+                          variable1 = "organization",
+                          variable2 = "concept",
+                          qualifier = "agreement",
+                          qualifierAggregation = "congruence", # co-agreement; or co-disagreement
+                          normalization = "Jaccard",
+                          isolates = FALSE,
+                          duplicates = "document"
+)
+
+# Load attributes
+
+at1 = dna_getAttributes(conn, variable = "organization")
+at2 = dna_getAttributes(conn, variable = "concept")
+
+# write files
+
+rownames(two_mode) <- at1$alias
+colnames(two_mode) <- at2$value
+
+rownames(one_mode) <- at1$alias
+colnames(one_mode) <- at1$alias
+
+write.csv2(two_mode, file ="Results/two-mode-CH_2020.csv") # for later use
+write.csv2(one_mode, file ="Results/one-mode-CH_2020.csv")
+write.csv2(at1, file = "Results/Covariables_Actors_Switzerland_2020.csv")
+write.csv2(at2, file = "Results/Covariables_Concepts_Switzerland_2020.csv")
+```
+
+4. Describe the two networks. What are the nodes? What are the ties? How many nodes and ties do both the networks have?
+
+The two-mode has two sets of nodes. The first set comprises of actors (41), the second of policy issues (85). The tie reflects if an actor supports a policy issue. 
+
+Number of ties: 513
+
+The one-mode has only one type of nodes, here the actors (41). The ties reflect if two actors co-agree or co-disagree with a policy issue.
+
+Number of ties: 522
+
+```{r}
+one_mode_net <- network(one_mode, directed = FALSE, ignore.eval = FALSE, names.eval="weight") #network package
+twomode.net <- graph_from_incidence_matrix(two_mode, weighted = TRUE) #igraph package
+
+network.edgecount(one_mode_net)
+ecount(twomode.net)
+
+```
+
+5. Make some basic analyses. What are the most central actors? What are the most central concepts? Use density, degree centralization, average degree, and the degree distribution to describe the structure of both networks. Look at the "Bonus Script" to make sure that you take the correct measures for the actor-concept network. 
+
+I show here only the analysis for the two-mode
+
+```{r}
+library(tnet)
+tm<-get.edgelist(twomode.net, names=FALSE)
+head(tm) 
+NodeLabels <- V(twomode.net)$name
+head(NodeLabels) 
+mt <- tm[, c(2, 1)]
+head(mt)
+
+deg_tm <- degree_tm(tm)
+deg_mt <- degree_tm(mt)
+
+deg_mt$Name <- NodeLabels
+
+```
+This is all a little bit complicated and not so rewarding...
+
+6. Use ´dna_barplot()´to look at the distribution of actors and concepts. Which concepts would you exclude? Explain why and exclude them using the ´dna_network()´ function.
+```{r}
+par(mfrow = c(1, 2))
+
+dna_barplot(conn, of = "concept", fontSize = 10)
+dna_barplot(conn, of = "organization", fontSize = 10)
+```
+7. Challenge 1: Play around with the ´dna_clust´ function to identify clusters in the actor-actor network! You may replicate the code from the Tutorial in Week 8.
+
+```{r}
+mc <- dna_multiclust(conn, statementType = "DNA Statement",
+                     variable1 = "organization",
+                     variable2 = "concept",
+                     qualifier = "agreement", duplicates = "acrossrange",
+                     start.date = "01.01.2020", stop.date = "31.12.2020",
+                     start.time = "00:00:00", stop.time = "23:59:59", timewindow = "no",
+                     windowsize = 100,  
+                     
+                     # excludeValues = list(
+                     #   "concept" =   "CC as business opportunity.", 
+                     #   "concept" = "Drastic reduction in energy consumption needed.",
+                     #   "concept" = "20% reduction (national target).",
+                     #   "organization" = "Verkehrs-Club Schweiz",
+                     #   "organization" = "Greenpeace Switzerland",
+                     #   "organization" = "Federal Council"),
+                     
+                     k = 0, k.max = 5, single = FALSE, average = FALSE,
+                     complete = FALSE, ward = TRUE, kmeans = TRUE, pam = TRUE,
+                     equivalence = FALSE, concor_one = TRUE, concor_two = TRUE,
+                     louvain = TRUE, fastgreedy = TRUE, walktrap = TRUE,
+                     leading_eigen = TRUE, edge_betweenness = TRUE, infomap = FALSE,
+                     label_prop = TRUE, spinglass = TRUE, verbose = TRUE)
+
+mc$max_mod
+mc$modularity
+```
+
+
+8. Challenge 2: Create an actor-actor and actor-concept network that only contains statements that link COVID-19 and climate policy. Describe the network and run 
+
+
+```{r}
+twomode_adjsuted = dna_network (conn, networkType = "twomode",
+                         statementType = "DNA Statement",
+                         variable1 = "organization",
+                         variable2 = "concept",
+                         qualifier = "agreement",
+                         qualifierAggregation = "combine", # multiplex combination
+                         #normalization = "Jaccard",
+                         #isolates = TRUE,
+                         duplicates = "document",
+                         excludeValues = list("concept" = c("Tackling covid crisis should be coupled with CC mitigation",
+                                                            "Abolition/ reduction of climate measures due to covid crisis",
+                                                            "Covid crisis presents opportunity for CC action")),
+                         invertValues = TRUE # only covid categories
+)
+```
