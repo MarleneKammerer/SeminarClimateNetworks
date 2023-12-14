@@ -23,10 +23,10 @@ set.seed (seed)
 
 #Import data
 
-OrgTypeCH <- read.csv2("Data/Actor_CH.csv", header=TRUE)
-BeliefCH <- read.csv2("Data/Beliefs_CH.csv", header=TRUE)
+OrgTypeCH <- read.csv2("Data/Actor_CH.csv", header=TRUE, fileEncoding = "latin1")
+BeliefCH <- read.csv2("Data/Beliefs_CH.csv", header=TRUE, fileEncoding = "latin1")
 BeliefCH$Name <- as.character(BeliefCH$Name)
-RepCH <- read.csv2("Data/REP_CH.csv", header=TRUE)
+RepCH <- read.csv2("Data/REP_CH.csv", header=TRUE, fileEncoding = "latin1")
 
 coopCH <- as.matrix(read.table(file = "Data/COLLAB_CH.csv", 
                                header = TRUE, row.names = 1, sep = ";"))
@@ -95,10 +95,7 @@ colnames(PBsCH) <- list
 
 #set Influence attribute
 
-
 CHInf <- network(RepCH, directed = TRUE, loops = TRUE )
-BeliefCH <- read.csv2("Beliefs_CH.csv", header=TRUE)
-
 set.vertex.attribute (nw.coopCH, "Influence", degree (RepCH, cmode = "indegree"))
 
 plot(nw.coopCH)
